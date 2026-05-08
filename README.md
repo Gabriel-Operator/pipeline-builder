@@ -1,20 +1,22 @@
-# go-pipeline-builder-skills
+# pipeline-builder
 
 Gabriel Operator pipeline-builder skill pack for Git-backed pipeline state machines.
+
+Published from: [go-code-bot/pipeline-builder](https://github.com/go-code-bot/pipeline-builder).
 
 ## Install
 
 ```bash
-npx github:go-code-bot/go-pipeline-builder-skills
-npx github:go-code-bot/go-pipeline-builder-skills add ./my-pipeline
-npx github:go-code-bot/go-pipeline-builder-skills sync ./my-pipeline
+npx github:go-code-bot/pipeline-builder
+npx github:go-code-bot/pipeline-builder add ./my-pipeline
+npx github:go-code-bot/pipeline-builder sync ./my-pipeline
 ```
 
 Or:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/go-code-bot/go-pipeline-builder-skills/main/install.sh | bash
-curl -fsSL https://raw.githubusercontent.com/go-code-bot/go-pipeline-builder-skills/main/install.sh | bash -s -- ./my-pipeline
+curl -fsSL https://raw.githubusercontent.com/go-code-bot/pipeline-builder/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/go-code-bot/pipeline-builder/main/install.sh | bash -s -- ./my-pipeline
 ```
 
 ## What gets installed

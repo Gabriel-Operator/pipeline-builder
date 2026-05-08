@@ -2,7 +2,7 @@
 set -euo pipefail
 
 OWNER="go-code-bot"
-REPO="go-pipeline-builder-skills"
+REPO="pipeline-builder"
 BRANCH="main"
 RAW_BASE="https://raw.githubusercontent.com/${OWNER}/${REPO}/${BRANCH}"
 TARGET_DIR="${1:-.}"

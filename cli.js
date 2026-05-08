@@ -2,12 +2,12 @@
 'use strict';
 
 /**
- * go-pipeline-builder-skills CLI
+ * pipeline-builder CLI
  *
  * Usage:
- *   npx github:go-code-bot/go-pipeline-builder-skills
- *   npx github:go-code-bot/go-pipeline-builder-skills add ./path
- *   npx github:go-code-bot/go-pipeline-builder-skills sync ./path
+ *   npx github:go-code-bot/pipeline-builder
+ *   npx github:go-code-bot/pipeline-builder add ./path
+ *   npx github:go-code-bot/pipeline-builder sync ./path
  */
 
 const fs = require('fs');
@@ -15,7 +15,7 @@ const https = require('https');
 const path = require('path');
 
 const OWNER = 'go-code-bot';
-const REPO = 'go-pipeline-builder-skills';
+const REPO = 'pipeline-builder';
 const BRANCH = 'main';
 const API_BASE = 'https://api.github.com';
 const RAW_BASE = `https://raw.githubusercontent.com/${OWNER}/${REPO}/${BRANCH}`;
@@ -26,7 +26,7 @@ function fetchText(url) {
     https.get(url, {
       headers: {
         Accept: 'application/vnd.github.v3+json',
-        'User-Agent': 'go-pipeline-builder-skills-cli/1.0',
+        'User-Agent': 'pipeline-builder-cli/1.0',
       },
     }, (res) => {
       if (res.statusCode === 301 || res.statusCode === 302) {
@@ -46,7 +46,7 @@ function fetchText(url) {
 function fetchBuffer(url) {
   return new Promise((resolve, reject) => {
     https.get(url, {
-      headers: { 'User-Agent': 'go-pipeline-builder-skills-cli/1.0' },
+      headers: { 'User-Agent': 'pipeline-builder-cli/1.0' },
     }, (res) => {
       if (res.statusCode === 301 || res.statusCode === 302) {
         return fetchBuffer(res.headers.location).then(resolve).catch(reject);
