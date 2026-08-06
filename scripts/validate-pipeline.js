@@ -27,6 +27,7 @@ function validateMappings(mappings, columnKeys, label) {
 
 const ALLOWED_TRIGGERS = new Set(['manual', 'scheduled', 'reactive', 'data_change']);
 const ALLOWED_GUARD_OPERATORS = new Set(['=', '!=', '>', '>=', '<', '<=', 'contains', 'is_empty', 'is_not_empty']);
+const ALLOWED_PERSIST_MODES = new Set(['shared_patch', 'per_record_match', 'create_or_upsert', 'replace']);
 const ALLOWED_EFFECT_OPERATIONS = new Set(['create', 'upsert', 'patch', 'create_or_upsert']);
 const ALLOWED_EFFECT_DISPATCH = new Set(['none', 'run_target_transition']);
 
@@ -207,6 +208,9 @@ function validate(filePath) {
     validateGuardAst(transition.success && transition.success.guardAst, columnKeys, `Transition ${id} success`);
     validateGuardAst(transition.failure && transition.failure.guardAst, columnKeys, `Transition ${id} failure`);
     for (const [name, outcome] of [['success', transition.success], ['failure', transition.failure]]) {
+      if (outcome && outcome.persistMode && !ALLOWED_PERSIST_MODES.has(outcome.persistMode)) {
+        fail(`Transition ${id} ${name} has invalid persistMode ${outcome.persistMode}`);
+      }
       const recordField = outcome && outcome.correlation && outcome.correlation.recordField;
       if (recordField && !columnKeys.has(recordField)) {
         fail(`Transition ${id} ${name} correlation uses missing record field ${recordField}`);

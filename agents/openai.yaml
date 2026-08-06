@@ -1,0 +1,5 @@
+interface:
+  display_name: "Pipeline Builder"
+  short_description: "Edit Gabriel pipeline state machines."
+  brand_color: "#2563EB"
+  default_prompt: "Use $pipeline-builder to edit assets/pipeline.json for this Gabriel pipeline."

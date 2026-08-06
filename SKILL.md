@@ -1,14 +1,6 @@
 ---
 name: pipeline-builder
-description: >
-  Build, validate, and maintain Git-backed Gabriel Operator pipeline state
-  machines by editing assets/pipeline.json. Use this skill when defining
-  pipeline columns as persisted actor context, stages as machine states, and
-  transitions as Gabriel workflow executions with guards and persistence
-  contracts that create, patch, or upsert records.
-metadata:
-  author: gabriel-operator
-  version: "1.0"
+description: "Build, validate, and maintain Git-backed Gabriel Operator pipeline state machines by editing assets/pipeline.json. Use this skill when defining pipeline columns as persisted actor context, stages as machine states, and transitions as Gabriel workflow executions with guards and persistence contracts that create, patch, or upsert records."
 compatibility: Requires Node.js 16+ for validation scripts.
 ---
 
@@ -242,6 +234,47 @@ For `choice` fields, include an `options` array:
 - To **rename** a task: update `title` in the task file. Do **not** change `pipelineTaskConfig.id` or the file name — that breaks existing saved runs.
 - Keep `pipelineTaskConfig.id`, the file name, and the `taskIds` entry all in sync.
 
+## Team-agent pages and first-step routing
+
+**Default:** Prefer **one** manual transition from the **initial** stage with a single `workflowEndpointId` (the team-agent / page-builder workflow). Model parallel work (many repos or categories) **inside** `assets/team-agent.json` using **fork** and **join** in the workflow graph, not by creating one pipeline transition per branch.
+
+**Multiple initial transitions:** Add two or more manual transitions from the same initial stage, each with `workflowEndpointId`, only when you need **different first workflows** or explicit route labels. The Results tab shows a route dropdown and sends `selectedTransitionId` on pipeline start and on stage **Resume** when multiple manual workflow transitions exist from that stage.
+
+**N transitions does not require N Git repositories.** You may reuse the same `workflowEndpointId` on several transitions if you only need distinct transition ids and labels.
+
+Example fragment (replace stage ids and endpoint uuid with yours):
+
+```json
+"transitions": [
+  {
+    "id": "ingest__route_alpha",
+    "name": "Route Alpha",
+    "fromStageId": "ingest",
+    "toStageId": "enrich",
+    "trigger": "manual",
+    "workflowEndpointId": "00000000-0000-4000-8000-000000000001",
+    "success": {
+      "advanceToStageId": "enrich",
+      "persistMode": "shared_patch",
+      "fieldMappings": []
+    }
+  },
+  {
+    "id": "ingest__route_beta",
+    "name": "Route Beta",
+    "fromStageId": "ingest",
+    "toStageId": "enrich",
+    "trigger": "manual",
+    "workflowEndpointId": "00000000-0000-4000-8000-000000000001",
+    "success": {
+      "advanceToStageId": "enrich",
+      "persistMode": "shared_patch",
+      "fieldMappings": []
+    }
+  }
+]
+```
+
 ## Transitions
 
 A transition is the software contract between a state, a workflow, and persisted records.
@@ -305,8 +338,9 @@ Supported operators are `=`, `!=`, `>`, `>=`, `<`, `<=`, `contains`, `is_empty`,
 - `shared_patch`: one workflow output object is mapped to every eligible record.
 - `per_record_match`: workflow returns an array and each item is matched to one existing record.
 - `create_or_upsert`: workflow returns an array and records are created or updated by correlation.
+- `replace`: workflow returns an array that hard-deletes all records in the associated pipeline list and inserts the new mapped records.
 
-For array modes, define correlation:
+For matching array modes, define correlation:
 
 ```json
 {
@@ -316,6 +350,15 @@ For array modes, define correlation:
     "recordField": "sku",
     "outputPath": "sku"
   }
+}
+```
+
+For full replacement, define `arrayKey` and omit correlation:
+
+```json
+{
+  "persistMode": "replace",
+  "arrayKey": "records"
 }
 ```
 
@@ -439,8 +482,8 @@ node scripts/validate-pipeline.js assets/pipeline.json
 ```
 
 The validator rejects duplicate columns, duplicate ids, missing stage references,
-invalid mappings, invalid correlation fields, and malformed cross-pipeline
-effects.
+invalid persist modes, invalid mappings, invalid correlation fields, and
+malformed cross-pipeline effects.
 
 Task files are validated at sync time by the runtime. Each `tasks/<taskId>.json` must:
 - Have `schemaVersion: 1`
