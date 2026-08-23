@@ -1,14 +1,15 @@
 {
-  "schemaVersion": 1,
-  "pageId": "page_example",
-  "pipelineId": "pipeline_example",
+  "schemaVersion": 2,
+  "resourceKey": "pipeline.example.items.v2",
+  "storage": {
+    "listRef": {
+      "kind": "list",
+      "resourceKey": "list.example.items.v2"
+    }
+  },
   "pipeline": {
-    "id": "pipeline_example",
-    "pageId": "page_example",
-    "userId": "user_example",
     "name": "Example Pipeline",
-    "description": "A Git-backed pipeline machine definition.",
-    "collectionId": "pipeline_example_collection",
+    "description": "A portable Git-backed pipeline machine definition.",
     "columns": [
       {
         "id": "col_name",
@@ -46,10 +47,7 @@
           "fieldMappings": []
         }
       }
-    ],
-    "version": 1,
-    "createdAt": "2026-01-01T00:00:00.000Z",
-    "updatedAt": "2026-01-01T00:00:00.000Z"
+    ]
   },
   "commitMessage": "Update pipeline machine definition"
 }
