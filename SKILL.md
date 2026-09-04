@@ -70,6 +70,10 @@ This repository is usually a **git submodule** of an AI Persona repository, at
   parent workspace (`node scripts/publish-workspace.js publish` from the persona root, or
   Gabriel **Publish workspace**). Until you do, the Persona still resolves the previous
   commit. A persona-root commit is not an atomic multi-repo publish.
+- Pushing the child repo is not the same as live execution seeing it. After a push, call
+  Gateway MCP `gabriel_sync_pipeline_from_git` with the existing `pipelineId`, then
+  `gabriel_get_pipeline` and confirm `transitionIds`. Do **not** send the owner to
+  Results → Configure pipeline, do not Repair, and do not create a new pipeline.
 - A transition whose `workflowEndpointId` points at a **team agent** is a workspace graph
   edge, not a portable registry row. Do **not** add `team_agent` or `dependsOn` to
   `references/registry.json`. Bind the team agent in Gabriel; workspace publish writes a
