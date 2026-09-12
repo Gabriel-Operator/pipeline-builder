@@ -8,7 +8,7 @@ description: >
   contracts that create, patch, or upsert records.
 metadata:
   author: gabriel-operator
-  version: "1.0"
+  version: "1.2"
   compatibility: Requires Node.js 16+ for validation scripts.
 ---
 
@@ -70,10 +70,15 @@ This repository is usually a **git submodule** of an AI Persona repository, at
   parent workspace (`node scripts/publish-workspace.js publish` from the persona root, or
   Gabriel **Publish workspace**). Until you do, the Persona still resolves the previous
   commit. A persona-root commit is not an atomic multi-repo publish.
-- Pushing the child repo is not the same as live execution seeing it. After a push, call
-  Gateway MCP `gabriel_sync_pipeline_from_git` with the existing `pipelineId`, then
+- Pushing the child repo is not the same as live execution seeing it. Chat is git-first
+  with a Mongo fallback. If git pull fails, the stale Mongo machine is what chat
+  authorizes — which is how `unknown pipeline transition "draft_email"` happens while
+  `assets/pipeline.json` already has `draft_email`. After a push, call Gateway MCP
+  `gabriel_sync_pipeline_from_git` with the existing `pipelineId`, then
   `gabriel_get_pipeline` and confirm `transitionIds`. Do **not** send the owner to
   Results → Configure pipeline, do not Repair, and do not create a new pipeline.
+- A stages-only `gabriel_update_pipeline_stages` call used to clear every transition.
+  The tool now requires `transitions`. Always send the full current arrays.
 - A transition whose `workflowEndpointId` points at a **team agent** is a workspace graph
   edge, not a portable registry row. Do **not** add `team_agent` or `dependsOn` to
   `references/registry.json`. Bind the team agent in Gabriel; workspace publish writes a
@@ -340,6 +345,12 @@ Example fragment (replace stage ids and endpoint uuid with yours):
 
 A transition is the software contract between a state, a workflow, and persisted records.
 
+**Every transition that a Canvas `pipeline_transition` task can reach must set `"automation": { "autoFireOnEntry": false }`**, even a plain `trigger: "manual"` transition with no acquisition step. This is enforced at **execution** time, not authoring/validation time — a pipeline that passed `scripts/validate-pipeline.js` can still fail live the first time chat runs it. A missing or `true` value throws `Canvas-driven transitions must explicitly set autoFireOnEntry to false.` (`CANVAS_TRANSITION_AUTO_FIRES`). Add the field when you author the transition; do not wait for the runtime error to notice it's missing, and re-check it after any git sync-back or manual edit that might have dropped it:
+
+```json
+{ "id": "gather-leads", "trigger": "manual", "automation": { "autoFireOnEntry": false } }
+```
+
 Existing-case policies use `answersField` as their preferred reusable answer payload.
 When older rows stored compatible answers under another declared column, list those
 columns in ordered `fallbackAnswersFields`. The runtime still revalidates every value
@@ -541,17 +552,25 @@ persist the approval must fall back to a separate approval gate.
 When the Canvas task declares `responseCollection.mode: "channels_only"`, make
 the answer transition workflowless: omit `workflowEndpointId` and
 `inputBindings`, omit the live `schema_form_dry_run` post-processor, and map the
-validated response output into the List. Canvas creates the task-scoped voice, phone,
-email, Slack, Discord, Telegram, or WhatsApp response session before requesting
-the transition. Do not route this through a collection team agent and never add
-`chat` as an allowed response channel; Persona Chat apps only deliver the secure
-single-use questionnaire link.
+validated response output into the List. Canvas presents **Answer here**,
+**Talk** (`in_app_voice`), and **Chat** (`in_app_chat`) in the Collect card, then
+creates runner-channel sessions for phone, email, Slack, Discord, Telegram, or
+WhatsApp when those are listed in `allowedChannels`. Chat is a first-class Canvas
+UI option, not an `allowedChannels` value: do not add `in_app_chat` or generic
+`chat` to the playbook channel list. Persona Chat apps only deliver the secure
+single-use questionnaire link; they must not start general Persona chat. Do not
+route Collect through a collection team agent. See **workflow-builder** Rule 4
+for the answering-surface and prefill contract.
 
 When existing-case reconciliation finds compatible prior answers, expose them
-only as prefilled draft values. Show the complete current Q&A—including reused,
-new, and invalidated fields—and require a fresh confirmation before committing
-Collect/review. Reuse must never synthesize a completed human response or reuse
-an earlier approval.
+only as prefilled draft values unless the runner already confirmed **Reuse** on
+a complete compatible bag (`_existingCase.mode: "reuse"`). That complete reuse
+commits through `reused_answers` and proceeds to the Collect approval gate.
+Silent list lookup (no launcher confirmation), signed-in profile, and
+conversational memory only prefill drafts. Show the complete current Q&A —
+including reused, new, and invalidated fields — and require a fresh confirmation
+before committing Collect/review. Automatic prefill must never synthesize a
+completed human response or reuse an earlier approval.
 
 Submission evidence is terminal evidence, not proof of transition success.
 Map `submission_screenshots` to the List's screenshot field and
