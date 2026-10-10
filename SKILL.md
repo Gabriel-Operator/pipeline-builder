@@ -840,3 +840,7 @@ Task files are validated at sync time by the runtime. Each `tasks/<taskId>.json`
 - Have a `resourceKey` matching the owning pipeline model
 - Have `pipelineTaskConfig.pipelineRef` matching the owning pipeline resource key
 - Have a non-empty `pipelineTaskConfig.id` that matches the file name (without `.json`)
+
+## Context-aware ontology
+
+Use the parent persona’s `assets/ontology.json` for Global → country/region → one authenticated audience → language → terminology. Refer to [the ontology skill](../persona-ontology/SKILL.md) for snapshots, stable IDs, validation, preview and gateway/MCP authoring. Child resources reference that contract; stored instances and credentials remain in existing runtime storage. Preserve captured ontology selections during retries and downstream mappings. Saving an ontology candidate is separate from activation.
