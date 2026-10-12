@@ -14,6 +14,12 @@ metadata:
 
 # Pipeline Builder
 
+The parent Persona owns its semantic entity/relationship contract in `assets/ontology.json`; use the `persona-ontology` skill to change it. Pipeline state machines still own governed transitions and mutations. Ontology references are optional and do not replace List columns, add a database, migrate rows, or bypass transition guards.
+
+## Offline runtime cases
+
+Read [the embedded runtime contract](references/offline-runtime-v1.md). Git carries pipeline definitions only. Cases, evidence, transition histories, approvals, and run checkpoints live in the active environment. A transition is offline-compatible only when every nested action is supported locally. Preserve stable case/stage references, revisions, tombstones, and conflicts through manual synchronization.
+
 ## Portable Git contract (schema v2)
 
 New and cross-environment pipeline assets must use stable resource keys:
@@ -834,3 +840,7 @@ Task files are validated at sync time by the runtime. Each `tasks/<taskId>.json`
 - Have a `resourceKey` matching the owning pipeline model
 - Have `pipelineTaskConfig.pipelineRef` matching the owning pipeline resource key
 - Have a non-empty `pipelineTaskConfig.id` that matches the file name (without `.json`)
+
+## Context-aware ontology
+
+Use the parent persona’s `assets/ontology.json` for Global → country/region → one authenticated audience → language → terminology. Refer to [the ontology skill](../persona-ontology/SKILL.md) for snapshots, stable IDs, validation, preview and gateway/MCP authoring. Child resources reference that contract; stored instances and credentials remain in existing runtime storage. Preserve captured ontology selections during retries and downstream mappings. Saving an ontology candidate is separate from activation.
